@@ -19,6 +19,7 @@
 use strict;
 use DBI;
 use English;
+use Digest::HMAC_SHA1 qw(hmac_sha1_hex);
 
 my $test_run = $ARGV[0] eq '-test';
 
@@ -77,6 +78,7 @@ while(!$nt_root_pw){
     $nt_root_pw = $response if $response and ($response eq $response2);
     print "\nPasswords didn't match!\n" unless $nt_root_pw;
 }
+$nt_root_pw = hmac_sha1_hex( $nt_root_pw, 'root' );
 print "\n";
 
 while(!$nt_root_email){
@@ -135,9 +137,9 @@ close(DIR);
 
 print "importing contents of temp.sql .. ";
 my $temp =<<EO_TEMP;
-INSERT INTO nt_user(nt_group_id, first_name, last_name, username, password, email) values (0, 'Root', 'User', 'root', '$nt_root_pw', '$nt_root_email');
-INSERT INTO nt_user_log(nt_group_id, nt_user_id, action, timestamp, modified_user_id, first_name, last_name, username, password, email) values (0,0,'added', UNIX_TIMESTAMP(), 0, 'Root', 'User', 'root', '$nt_root_pw', '$nt_root_email');
-INSERT INTO nt_user_global_log(nt_user_id, timestamp, action, object, object_id, log_entry_id, title, description) values (0,UNIX_TIMESTAMP(),'added', 'user', 1, 1, 'root', 'user creation');
+INSERT INTO nt_user(nt_group_id, first_name, last_name, username, password, email) values (1, 'Root', 'User', 'root', '$nt_root_pw', '$nt_root_email');
+INSERT INTO nt_user_log(nt_group_id, nt_user_id, action, timestamp, modified_user_id, first_name, last_name, username, password, email) values (1,1,'added', UNIX_TIMESTAMP(), 0, 'Root', 'User', 'root', '$nt_root_pw', '$nt_root_email');
+INSERT INTO nt_user_global_log(nt_user_id, timestamp, action, object, object_id, log_entry_id, title, description) values (1,UNIX_TIMESTAMP(),'added', 'user', 1, 1, 'root', 'user creation');
 EO_TEMP
 open(TEMP,">temp.sql") || die "Unable to create file temp.sql: $!\n";
 print TEMP $temp;
